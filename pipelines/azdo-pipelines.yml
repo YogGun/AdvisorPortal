@@ -1,0 +1,38 @@
+name: 1.2.$(Rev:r)
+trigger:
+- main
+- Release*
+- TestAutomation
+
+pr: none
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: Liverpool-Victoria/azdo-pipeline-templates
+      endpoint: Liverpool-Victoria
+      ref: main
+
+parameters:
+- name: TEST
+  type: boolean
+  default: true
+- name: TESTTAG
+  type: string
+  default: '@RegressionAAM'
+
+variables:
+  version: $(Build.BuildNumber)
+  PROJECT_KEY: 'adviser-user-interface'
+  DOCKER_FOLDER: 'sr/st2'
+  selenium-grid: 'https://selenium-grid.lvfs.net/'
+  MAVEN_CACHE_FOLDER: '$(Pipeline.Workspace)/.m2/repository'
+  MAVEN_OPTS_TEST: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER) -Dcucumber.filter.tags=${{ parameters.TESTTAG }} -Dbrowser=CHROME -Dgrid=$(selenium-grid)'
+  jfrog-version: '$(PROJECT_KEY)-$(version)'
+
+stages:
+- template: stages-docker-build-publish-template.yaml@templates
+  parameters:
+    NPM_BUILD: true
+    TEST : true
